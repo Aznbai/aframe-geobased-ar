@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>OBJ 2 gltf</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="assets/main.css">
+	</head>
+	<body>
+		<div id="info">
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - exporter - gltf<br/><br/>
+		
+			<button id="export_obj">Export OBJect</button>
+<br>
+			<label><input id="option_trs" name="trs" type="checkbox"/>TRS</label>
+			<label><input id="option_visible" name="visible" type="checkbox" checked="checked"/>Only Visible</label>
+			<label><input id="option_drawrange" name="visible" type="checkbox" checked="checked"/>Truncate drawRange</label><br/>
+			<label><input id="option_binary" name="visible" type="checkbox">Binary (<code>.glb</code>)</label>
+			<label><input id="option_maxsize" name="maxSize" type="number" value="4096" min="2" max="8192" step="1"> Max texture size</label>
+		</div>
+
+		<script type="module">
+
+			import * as THREE from './assets/three.module.js';
+
+			import { OBJLoader } from './assets/OBJLoader.js';
+			import { GLTFExporter } from './assets/GLTFExporter.js';
+
+			function exportGLTF( input ) {
+
+				const gltfExporter = new GLTFExporter();
+
+				const options = {
+					trs: document.getElementById( 'option_trs' ).checked,
+					onlyVisible: document.getElementById( 'option_visible' ).checked,
+					truncateDrawRange: document.getElementById( 'option_drawrange' ).checked,
+					binary: document.getElementById( 'option_binary' ).checked,
+					maxTextureSize: Number( document.getElementById( 'option_maxsize' ).value ) || Infinity // To prevent NaN value
+				};
+				gltfExporter.parse( input, function ( result ) {
+
+					if ( result instanceof ArrayBuffer ) {
+
+						saveArrayBuffer( result, 'scene.glb' );
+
+					} else {
+
+						const output = JSON.stringify( result, null, 2 );
+						console.log( output );
+						saveString( output, 'scene.gltf' );
+
+					}
+
+				}, options );
+
+			}
+
+		
+
+			document.getElementById( 'export_obj' ).addEventListener( 'click', function () {
+
+				exportGLTF( waltHead );
+
+			} );
+
+
+
+			const link = document.createElement( 'a' );
+			link.style.display = 'none';
+			document.body.appendChild( link ); // Firefox workaround, see #6594
+
+			function save( blob, filename ) {
+
+				link.href = URL.createObjectURL( blob );
+				link.download = filename;
+				link.click();
+
+				// URL.revokeObjectURL( url ); breaks Firefox...
+
+			}
+
+			function saveString( text, filename ) {
+
+				save( new Blob( [ text ], { type: 'text/plain' } ), filename );
+
+			}
+
+
+			function saveArrayBuffer( buffer, filename ) {
+
+				save( new Blob( [ buffer ], { type: 'application/octet-stream' } ), filename );
+
+			}
+
+			let container;
+
+			let camera, object, object2, material, geometry, scene1, scene2, renderer;
+			let gridHelper, sphere, waltHead;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				// Make linear gradient texture
+				const data = new Uint8ClampedArray( 100 * 100 * 3 );
+				for ( let y = 0; y < 100; y ++ ) {
+
+					for ( let x = 0; x < 100; x ++ ) {
+
+						data[ 3 * ( 100 * y + x ) ] = Math.round( 255 * y / 99 );
+						data[ 3 * ( 100 * y + x ) + 1 ] = Math.round( 255 - 255 * y / 99 );
+
+					}
+
+				}
+
+				const gradientTexture = new THREE.DataTexture( data, 100, 100, THREE.RGBFormat );
+				gradientTexture.minFilter = THREE.LinearFilter;
+				gradientTexture.magFilter = THREE.LinearFilter;
+
+				scene1 = new THREE.Scene();
+				scene1.name = 'Scene1';
+
+				// ---------------------------------------------------------------------
+				// Perspective Camera
+				// ---------------------------------------------------------------------
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 600, 400, 0 );
+
+				camera.name = "PerspectiveCamera";
+				scene1.add( camera );
+
+				// ---------------------------------------------------------------------
+				// Ambient light
+				// ---------------------------------------------------------------------
+				const ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
+				ambientLight.name = 'AmbientLight';
+				scene1.add( ambientLight );
+
+				// ---------------------------------------------------------------------
+				// DirectLight
+				// ---------------------------------------------------------------------
+				const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+				dirLight.target.position.set( 0, 0, - 1 );
+				dirLight.add( dirLight.target );
+				dirLight.lookAt( - 1, - 1, 0 );
+				dirLight.name = 'DirectionalLight';
+				scene1.add( dirLight );
+
+				// ---------------------------------------------------------------------
+				// Grid
+				// ---------------------------------------------------------------------
+				gridHelper = new THREE.GridHelper( 2000, 20, 0x888888, 0x444444 );
+				gridHelper.position.y = - 50;
+				gridHelper.name = "Grid";
+				scene1.add( gridHelper );
+
+				// ---------------------------------------------------------------------
+				// Axes
+				// ---------------------------------------------------------------------
+				const axes = new THREE.AxesHelper( 500 );
+				axes.name = "AxesHelper";
+				scene1.add( axes );
+
+	
+				// ---------------------------------------------------------------------
+				//OBJECT
+				//
+				const loader = new OBJLoader();
+				loader.load( './assets/hp-micro-123.obj', function ( obj ) {
+
+					waltHead = obj;
+					waltHead.scale.multiplyScalar( 1.5 );
+					waltHead.position.set( 0, 0, 0 );
+					scene1.add( waltHead );
+
+				} );
+
+
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container.appendChild( renderer.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				const timer = Date.now() * 0.0001;
+
+				camera.position.x = Math.cos( timer ) * 800;
+				camera.position.z = Math.sin( timer ) * 800;
+
+				camera.lookAt( scene1.position );
+				renderer.render( scene1, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

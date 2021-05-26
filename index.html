@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible"
+        content="IE=edge" />
+    <title>Location-based AR.js demo</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <a-scene shadow="type: pcfsoft"
+        embedded
+        vr-mode-ui="enabled: true"
+        renderer="
+            antialias: false;
+            colorManagement: true;
+            sortObjects: true;
+            physicallyCorrectLights: true;
+            maxCanvasWidth: 1920;
+            maxCanvasHeight: 1920;
+            precision:low;
+            logarithmicDepthBuffer: true;"
+        arjs="
+            sourceType: webcam;
+            debugUIEnabled: false;"
+        stats=""
+        inspector=""
+        keyboard-shortcuts=""
+        screenshot="">
+        <a-assets>
+            <!--   <video id="my-video"
+                src="https://ar.hyperpainting.net/assets/bubble.mp4"
+                autoplay="true"> -->
+            <a-asset-item id="hp"
+                src="https://ar.hyperpainting.net/assets/hp-micro-123-selfexport.glb"></a-asset-item>
+            <a-mixin id="orbitHP"
+                animation__x="
+                    property: object3D.rotation.x;
+                    to: -360;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur:60000"
+                animation__y="
+                    property: object3D.rotation.y;
+                    to: -360;
+                    loop: true;
+                    easing:easeInOutSine;
+                    dur: 100000"
+                animation__z="
+                    property: object3D.rotation.z;
+                    to: -360;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur: 80000">
+            </a-mixin>
+            <a-mixin id="orbitCbk"
+                animation__x="
+                    property: object3D.rotation.x;
+                    to: -360;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur: 18200"
+                animation__y="
+                    property: object3D.rotation.y;
+                    to: -360;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur: 21800"
+                animation__z="
+                    property: object3D.rotation.z;
+                    to: -360;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur: 25100"
+                animation__scale="
+                    property:scale;
+                    to: 0.8 0.8 0.8;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur:30000;
+                    dir:alternate"
+                animation__material="
+                    property: material.metalness;
+                    from:0.0005;
+                    to: 1;
+                    loop: true;
+                    easing: easeInOutQuad;
+                    dur: 5000;
+                    dir:alternate">
+            </a-mixin>
+            <a-mixin id="pulseLightVio"
+                animation__intensity="
+                property: light.intensity;
+                from:8;
+                to: 20;
+                loop: true;
+                dur: 2200;
+                dir:alternate"
+                animation__color="
+                property: light.color;
+                from:rgb(200, 70, 30);
+                to:rgb(0, 30, 180);
+                dur: 35000;
+                loop:true; 
+                easings: easeInOutSine;
+                dir: alternate;">
+            </a-mixin>
+            <a-mixin id="pulseLightGreen"
+                animation__intensity="
+                property: light.intensity;
+                from:40;
+                to: 10;
+                loop: true;
+                easing: easeInOutQuad;
+                dur: 4000;
+                dir:alternate"
+                animation__color="
+                property: light.color;
+                from:rgb(20, 230, 130);
+                to:rgb(180, 30, 70);
+                dur: 20000;
+                loop:true; 
+                easings: easeInOutQuad;
+                dir: alternate;">
+            </a-mixin>
+            <a-mixin id="pulseMaterial"
+                animation="
+                property: material.metalness;
+                from:0.5;
+                to: 1;
+                loop: true;
+                easing: easeInOutQuad;
+                dur: 5000;
+                dir:alternate">
+            </a-mixin>
+        </a-assets>
+        <a-text value="This text faces you"
+            look-at="[gps-camera]"
+            scale="50 50 50"
+            gps-entity-place="latitude: 50.133619;
+        longitude: 8.745462;"></a-text>
+        <a-gltf-model src="#hp"
+            gps-entity-place="
+            latitude: 50.133619;
+            longitude: 8.745462;"
+            position="0 200 0"
+            rotation="0 0 0"
+            scale="0.5 0.5 0.5"
+            mixin="orbitHP"
+            id="hp-model">
+        </a-gltf-model>
+        <a-camera gps-camera
+            rotation-reader> </a-camera>
+
+        <a-entity>
+            <a-light mixin="pulseLightVio"
+                castShadow="false"
+                intensity="12"
+                position="-25 -5 -14"
+                rotation="180 120 30"
+                scale="4 4 4"
+                angle="-130"
+                distance="220"
+                decay="0.6"
+                type="spot"
+                color="#bd2bee"
+                penumbra="0.69"
+                visible="">
+                <a-sphere radius="0.1"
+                    emissive="#3f2"
+                    emissiveIntensity="100"
+                    color="#EF2D5E">
+                </a-sphere>
+            </a-light>
+        </a-entity>
+        <a-entity rotation="0 30 0">
+            <a-light mixin="pulseLightGreen"
+                castShadow="false"
+                intensity="5.6"
+                position="50 20 0"
+                scale="4 4 4"
+                angle="230"
+                distance="220"
+                type="point"
+                color="#46ec67"
+                decay="0.6"
+                visible="">
+                <a-sphere radius="0.1"
+                    emissive="#3f2"
+                    emissiveIntensity="1000"
+                    color="#3ef"></a-sphere>
+            </a-light>
+        </a-entity>
+    </a-scene>
+</body>
+
+</html>
